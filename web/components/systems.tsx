@@ -4,7 +4,7 @@ import { Reveal } from "./reveal";
 
 export default function Systems() {
   return (
-    <section id="systems" className="py-20 lg:py-28">
+    <section id="systems" className="py-14 lg:py-28">
       <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
         <Reveal>
           <h2 className="t-h2 max-w-[17ch] text-balance">
@@ -57,11 +57,18 @@ export default function Systems() {
 
       <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
         <Reveal className="mt-10">
-          <ul className="flex flex-wrap gap-2.5">
+          <p className="mb-4 text-[0.95rem] text-muted">
+            Also supplied and installed
+          </p>
+          {/* A wrapped pill row turns ragged the moment the labels vary, and
+              these run from "ASRS" to "Superblock Rack Supported Platform".
+              An even grid gives every name the same room and keeps the rows
+              aligned however long the text is. */}
+          <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
             {SYSTEMS_MORE.map((s) => (
               <li
                 key={s}
-                className="rounded-full bg-surface px-4 py-2 text-[0.9rem] text-body"
+                className="flex items-center rounded-2xl bg-surface px-4 py-3 text-[0.9rem] leading-snug text-body"
               >
                 {s}
               </li>

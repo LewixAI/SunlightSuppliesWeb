@@ -19,7 +19,7 @@ const SPAN = [
 
 export default function Installed() {
   return (
-    <section id="installed" className="py-20 lg:py-28">
+    <section id="installed" className="py-14 lg:py-28">
       <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
         <Reveal>
           <h2 className="t-h2 max-w-[16ch] text-balance">

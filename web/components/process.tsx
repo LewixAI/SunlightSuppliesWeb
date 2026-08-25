@@ -4,7 +4,7 @@ import { Reveal } from "./reveal";
 
 export default function Process() {
   return (
-    <section id="process" className="py-20 lg:py-28">
+    <section id="process" className="py-14 lg:py-28">
       <div className="mx-auto grid max-w-[1180px] grid-cols-1 gap-10 px-4 sm:px-6 lg:grid-cols-12 lg:gap-14 lg:px-8">
         <div className="lg:col-span-5">
           <div className="lg:sticky lg:top-28">

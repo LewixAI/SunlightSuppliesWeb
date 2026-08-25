@@ -12,7 +12,7 @@ import { Reveal } from "./reveal";
  */
 export default function ClientWall() {
   return (
-    <section className="px-4 py-16 sm:px-6 lg:px-8">
+    <section className="px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
       <div className="mx-auto max-w-[1180px]">
         <Reveal>
           <p className="mb-9 text-center text-[0.95rem] text-muted">
