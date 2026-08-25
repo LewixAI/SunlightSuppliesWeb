@@ -55,7 +55,7 @@ export default function BuildSequence() {
     const model = buildRack({ rows: 1, bays: 4, load: 0.8 });
     const rack = buildRackObject(model);
     scene.add(rack.group);
-    stage(renderer, scene, 8, 1.0, 0xf8f7f5);
+    const staged = stage(renderer, scene, 8, 1.0, 0xf8f7f5);
 
     const order = STAGES.map((s) => s.key as PartKind);
     const totals = order.map((k) => model.counts[k]);
@@ -115,6 +115,7 @@ export default function BuildSequence() {
            rate; the first fit snaps so nothing starts off screen. */
         const k = framed ? smooth(dt, 7) : 1;
         dist += (f.distance - dist) * k;
+        staged.setFogRange(dist);
         target.lerp(f.centre, k);
         framed = true;
       }

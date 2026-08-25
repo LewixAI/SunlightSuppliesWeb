@@ -11,7 +11,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import { buildRack, type PartKind } from "@/lib/rack";
+import { STAGES, buildRack, type PartKind } from "@/lib/rack";
 import { buildRackObject } from "@/lib/rack-three";
 
 /**
@@ -162,6 +162,80 @@ function Panel({ view, bays }: { view: View; bays: number }) {
   );
 }
 
+/**
+ * Regression guard for the drop-in animation.
+ *
+ * The measurement table below is blind to this: it reads a rack that has had
+ * revealAll() called on it, which rewrites every matrix from base and so
+ * erases exactly the corruption worth hunting. This instead scrubs the build
+ * back and forth the way a fast scroll does, then reveals everything and
+ * checks each instance is back on its base matrix. Any drift means a part is
+ * left shrunken and floating.
+ */
+function scrubCheck() {
+  const model = buildRack({ rows: 1, bays: 3, load: 1 });
+  const rack = buildRackObject(model);
+  const order = STAGES.map((s) => s.key as PartKind);
+  const totals = order.map((k) => model.counts[k]);
+
+  const apply = (p: number) => {
+    const span = 1 / STAGES.length;
+    order.forEach((kind, i) => {
+      const local = Math.max(0, Math.min(1, (p - i * span) / span));
+      const n = local * totals[i];
+      rack.reveal(kind, n, n - Math.floor(n));
+    });
+  };
+
+  // deliberately jumpy, plus a fine sweep, then settle fully revealed
+  for (const p of [0.9, 0.17, 0.62, 0.31, 0.99, 0.05, 0.44, 0.78]) apply(p);
+  for (let i = 0; i <= 240; i++) apply(i / 240);
+  order.forEach((kind, i) => rack.reveal(kind, totals[i], 0));
+
+  let worst = 0;
+  let offenders = 0;
+  const a = new THREE.Matrix4();
+  rack.group.traverse((o) => {
+    const mesh = o as THREE.InstancedMesh & { userData: { base?: unknown } };
+    if (!mesh.isInstancedMesh) return;
+    const base = rack.baseMatrices(mesh);
+    if (!base) return;
+    for (let i = 0; i < mesh.count; i++) {
+      mesh.getMatrixAt(i, a);
+      let d = 0;
+      for (let k = 0; k < 16; k++)
+        d = Math.max(d, Math.abs(a.elements[k] - base[i].elements[k]));
+      if (d > 1e-6) offenders++;
+      worst = Math.max(worst, d);
+    }
+  });
+  rack.dispose();
+  return { offenders, worst };
+}
+
+function ScrubCheck() {
+  const [result, setResult] = useState<string>("running");
+  useEffect(() => {
+    const r = scrubCheck();
+    setResult(
+      r.offenders === 0
+        ? `PASS - every instance back on its base matrix after scrubbing (worst drift ${r.worst.toExponential(1)})`
+        : `FAIL - ${r.offenders} instances left off their base matrix, worst drift ${r.worst.toFixed(4)}`,
+    );
+  }, []);
+  return (
+    <pre
+      className={`rounded border p-3 font-mono text-[11px] ${
+        result.startsWith("FAIL")
+          ? "border-red-400 bg-red-50 text-red-800"
+          : "border-neutral-300 bg-white text-neutral-800"
+      }`}
+    >
+      {result}
+    </pre>
+  );
+}
+
 function Measurements() {
   const [rows, setRows] = useState<string[]>([]);
   useEffect(() => {
@@ -183,6 +257,12 @@ export default function RackInspector() {
       <h1 className="mb-3 font-mono text-sm text-neutral-700">
         rack inspector - 2 bays, fully loaded
       </h1>
+      <div className="mb-4">
+        <p className="mb-1 font-mono text-[11px] text-neutral-600">
+          Drop-in animation, scrubbed
+        </p>
+        <ScrubCheck />
+      </div>
       <div className="mb-4">
         <p className="mb-1 font-mono text-[11px] text-neutral-600">
           Extents, millimetres - one bay, every part

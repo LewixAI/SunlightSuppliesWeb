@@ -168,6 +168,8 @@ export interface RackParts {
   revealAll(): void;
   dispose(): void;
   counts: Record<PartKind, number>;
+  /** the untouched matrices for a mesh, so a test can check nothing drifted */
+  baseMatrices(mesh: THREE.Object3D): THREE.Matrix4[] | null;
 }
 
 type Bucket = {
@@ -348,9 +350,22 @@ export function buildRackObject(model: RackModel): RackParts {
     for (const arr of buckets.values()) for (const b of arr) b.mesh.dispose();
   }
 
+  function baseMatrices(mesh: THREE.Object3D) {
+    for (const arr of buckets.values())
+      for (const b of arr) if (b.mesh === mesh) return b.base;
+    return null;
+  }
+
   revealAll();
 
-  return { group, reveal, revealAll, dispose, counts: model.counts };
+  return {
+    group,
+    reveal,
+    revealAll,
+    dispose,
+    counts: model.counts,
+    baseMatrices,
+  };
 }
 
 /**
@@ -442,10 +457,14 @@ export function stage(
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
 
-  // Far enough back that it only ever eats the floor running off to the
-  // horizon. Pulled in close it washes the whole subject toward the page
-  // colour, which is what a soft palette makes hard to notice.
-  scene.fog = new THREE.Fog(paper, extent * 3.2, extent * 9);
+  /* Fog exists only to fade the floor off toward the horizon, never to touch
+     the subject - so its range has to follow the CAMERA DISTANCE, not the size
+     of the model. Fixed from `extent` it looks right on a wide card, where the
+     fit puts the camera about 24 m out, and washes the rack three-quarters
+     into the page colour on a narrow one, where fitting the same run needs
+     nearly 70 m. Call setFogRange() after every fit. */
+  const fog = new THREE.Fog(paper, 1e6, 2e6);
+  scene.fog = fog;
 
   // sky above, warm bounce off the floor. Most of the light in the scene.
   const hemi = new THREE.HemisphereLight(0xf4f8ff, 0xe8dfd2, 1.45);
@@ -491,5 +510,11 @@ export function stage(
   ground.receiveShadow = true;
   scene.add(ground);
 
-  return { key, fillWarm, fillCool, hemi, ground };
+  /** push the fog out beyond the subject, given how far back the camera sits */
+  function setFogRange(distance: number) {
+    fog.near = distance * 1.7;
+    fog.far = distance * 4.5;
+  }
+
+  return { key, fillWarm, fillCool, hemi, ground, fog, setFogRange };
 }

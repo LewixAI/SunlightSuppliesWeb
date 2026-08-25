@@ -61,7 +61,7 @@ export default function RackHeroCanvas({
     const model = buildRack({ rows: 1, bays: 8, load: 0.88 });
     const rack = buildRackObject(model);
     scene.add(rack.group);
-    stage(renderer, scene, 9, 1.0, 0xf8f7f5);
+    const staged = stage(renderer, scene, 9, 1.0, 0xf8f7f5);
 
     const target = new THREE.Vector3();
     let dist = 20;
@@ -79,6 +79,7 @@ export default function RackHeroCanvas({
          beam level. */
       const f = fitDistance(rack.group, camera, DIR, 0.97);
       dist = f.distance;
+      staged.setFogRange(dist);
       target.copy(f.centre);
       camera.position.copy(DIR).multiplyScalar(dist).add(target);
       camera.lookAt(target);
