@@ -19,8 +19,8 @@ const SPAN = [
 
 export default function Installed() {
   return (
-    <section id="installed" className="py-24 lg:py-32">
-      <div className="mx-auto max-w-[1400px] px-6 lg:px-10">
+    <section id="installed" className="py-20 lg:py-28">
+      <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
         <Reveal>
           <h2 className="t-h2 max-w-[16ch] text-balance">
             Racking that is already standing in Johor.
@@ -31,7 +31,7 @@ export default function Installed() {
           </p>
         </Reveal>
 
-        <div className="mt-14 grid grid-cols-1 gap-x-4 gap-y-10 md:grid-cols-12">
+        <div className="mt-14 grid grid-cols-1 gap-x-5 gap-y-10 md:grid-cols-12">
           {PROJECTS.map((p, i) => (
             <Reveal
               key={p.slug}
@@ -40,7 +40,7 @@ export default function Installed() {
             >
               <figure>
                 <div
-                  className={`relative overflow-hidden rounded-[4px] border border-line ${
+                  className={`relative overflow-hidden rounded-[24px] bg-surface ${
                     SPAN[i].split(" ")[1]
                   }`}
                 >
@@ -52,13 +52,15 @@ export default function Installed() {
                     className="object-cover"
                   />
                 </div>
-                <figcaption className="mt-4 flex items-baseline justify-between gap-4 border-t border-line pt-3">
-                  <span className="text-[0.95rem] text-text">{p.client}</span>
-                  <span className="t-num text-[0.75rem] text-text-3">
+                <figcaption className="mt-4 flex items-baseline justify-between gap-4">
+                  <span className="text-[1rem] font-medium text-ink">
+                    {p.client}
+                  </span>
+                  <span className="t-num text-[0.85rem] text-faint">
                     {p.year}
                   </span>
                 </figcaption>
-                <p className="mt-1 text-[0.85rem] text-text-2">{p.system}</p>
+                <p className="mt-1 text-[0.9rem] text-muted">{p.system}</p>
               </figure>
             </Reveal>
           ))}

@@ -249,7 +249,7 @@ export const RETAIL = [
   {
     name: "Oppa Rack",
     zh: "韩国架子",
-    file: "/retail/oppa-basket-stand.png",
+    file: "/retail/oppa-basket-stand-w.png",
     note: "Rubber shoes, shelf dividers and side panels to order.",
   },
   {
@@ -273,13 +273,13 @@ export const RETAIL = [
   {
     name: "Offer Bin",
     zh: "鐵線産品",
-    file: "/retail/offer-bin.png",
+    file: "/retail/offer-bin-w.png",
     note: "One to three levels, back netting optional.",
   },
   {
     name: "Mannequin",
     zh: "人體模型",
-    file: "/retail/mannequin.png",
+    file: "/retail/mannequin-form.png",
     note: "Full form, hand, child and hanging types.",
   },
   {
@@ -291,7 +291,7 @@ export const RETAIL = [
   {
     name: "Hand Truck",
     zh: "手推車",
-    file: "/retail/hand-truck.png",
+    file: "/retail/hand-truck-metal.png",
     note: "130 kg plastic, metal and PVC ST150.",
   },
   {
@@ -303,7 +303,7 @@ export const RETAIL = [
   {
     name: "Four Way Display Stand",
     zh: "四方展示架",
-    file: "/retail/four-way-display-stand.png",
+    file: "/retail/four-way-display-stand-w.png",
     note: "Bearing turntable, garment or accessory arms.",
   },
   {

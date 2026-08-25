@@ -16,16 +16,17 @@ import { SECTION, type PartKind, type RackModel } from "./rack";
 const MM = 0.001; // millimetres to metres
 
 export const COLOURS = {
-  upright: 0x2a63c4,
-  brace: 0x2358b4,
-  beam: 0xf58a1e,
-  baseplate: 0x99a1a8,
-  deck: 0x9a7850,
-  pallet: 0x8a6236,
-  /* Shrink-wrapped stock. Deliberately desaturated and mid-grey: the loads are
-     context, and a bright white block out-shouts the steel that is the point. */
-  load: 0x6e757b,
-  ground: 0x0d0f11,
+  /* Softened a step from the harsh industrial livery in their photos: same
+     cobalt and safety orange, a little lighter and much less metallic, so the
+     rack reads as a friendly object in a bright room rather than plant. */
+  upright: 0x3565cf,
+  brace: 0x2f5cc4,
+  beam: 0xf2870f,
+  baseplate: 0xb9bec4,
+  deck: 0xd7b078,
+  pallet: 0xbe8f58,
+  load: 0xe4ddd2,
+  ground: 0xf0ede8,
 };
 
 /* --- geometry ------------------------------------------------------------ */
@@ -133,7 +134,7 @@ function slotTexture(base: string) {
   const ctx = c.getContext("2d")!;
   ctx.fillStyle = base;
   ctx.fillRect(0, 0, 32, 64);
-  ctx.fillStyle = "rgba(0,0,0,0.55)";
+  ctx.fillStyle = "rgba(0,0,0,0.3)";
   ctx.fillRect(11, 8, 10, 20);
   ctx.fillRect(11, 40, 10, 16);
   const t = new THREE.CanvasTexture(c);
@@ -170,8 +171,8 @@ export function buildRackObject(model: RackModel): RackParts {
     new THREE.MeshStandardMaterial({
       color,
       map,
-      metalness: 0.52,
-      roughness: 0.42,
+      metalness: 0.22,
+      roughness: 0.5,
     });
 
   const geo: Record<string, THREE.BufferGeometry> = {
@@ -191,10 +192,10 @@ export function buildRackObject(model: RackModel): RackParts {
   const mat: Record<string, THREE.Material> = {
     baseplate: new THREE.MeshStandardMaterial({
       color: COLOURS.baseplate,
-      metalness: 0.78,
-      roughness: 0.36,
+      metalness: 0.3,
+      roughness: 0.55,
     }),
-    upright: steel(COLOURS.upright, slotTexture("#1d4fa2")),
+    upright: steel(COLOURS.upright, slotTexture("#3565cf")),
     brace: steel(COLOURS.brace),
     beam: steel(COLOURS.beam),
     deck: new THREE.MeshStandardMaterial({
@@ -209,8 +210,8 @@ export function buildRackObject(model: RackModel): RackParts {
     }),
     load: new THREE.MeshStandardMaterial({
       color: COLOURS.load,
-      metalness: 0.05,
-      roughness: 0.72,
+      metalness: 0,
+      roughness: 0.82,
     }),
   };
 
@@ -312,12 +313,20 @@ export function buildRackObject(model: RackModel): RackParts {
 
 /* --- staging ------------------------------------------------------------- */
 
-/** Lights, ground and tone mapping shared by both scenes. */
+/**
+ * Lights, ground and tone mapping shared by both scenes.
+ *
+ * A bright, soft room rather than a warehouse at night: high fill, one gentle
+ * key with a wide soft shadow, and fog that dissolves the ground into the page
+ * colour instead of into black. `paper` is the surface the canvas sits on, so
+ * the scene never shows an edge where the floor stops.
+ */
 export function stage(
   renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
   extent: number,
-  exposure = 1.38,
+  exposure = 1.0,
+  paper = 0xf8f7f5,
 ) {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -325,20 +334,23 @@ export function stage(
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
 
-  // fog closes the ground plane off into the page colour, so there is no hard
-  // horizon edge cutting across the section
-  scene.fog = new THREE.Fog(0x0b0c0d, extent * 1.9, extent * 6.5);
+  // Far enough back that it only ever eats the floor running off to the
+  // horizon. Pulled in close it washes the whole subject toward the page
+  // colour, which is what a soft palette makes hard to notice.
+  scene.fog = new THREE.Fog(paper, extent * 3.2, extent * 9);
 
-  const hemi = new THREE.HemisphereLight(0xdae3ee, 0x1b2026, 1.5);
+  // sky above, warm bounce off the floor. Most of the light in the scene.
+  const hemi = new THREE.HemisphereLight(0xf4f8ff, 0xe8dfd2, 1.45);
   scene.add(hemi);
 
-  const key = new THREE.DirectionalLight(0xfff4e4, 4.1);
-  key.position.set(extent * 0.75, extent * 1.15, extent * 0.62);
+  const key = new THREE.DirectionalLight(0xfff6ea, 3.1);
+  key.position.set(extent * 0.6, extent * 1.25, extent * 0.75);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
-  key.shadow.bias = -0.0012;
-  key.shadow.normalBias = 0.02;
-  const d = extent * 0.9;
+  key.shadow.bias = -0.0009;
+  key.shadow.normalBias = 0.025;
+  key.shadow.radius = 3;
+  const d = extent * 0.95;
   Object.assign(key.shadow.camera, {
     left: -d,
     right: d,
@@ -350,31 +362,20 @@ export function stage(
   key.shadow.camera.updateProjectionMatrix();
   scene.add(key);
 
-  // warm rim on the beam side, cool fill opposite. Keeps the steel from
-  // flattening out against a near-black background.
-  const rim = new THREE.DirectionalLight(0xf8941c, 1.9);
-  rim.position.set(-extent, extent * 0.5, -extent * 0.8);
-  scene.add(rim);
+  // two soft fills so nothing goes muddy on the shadow side
+  const fillWarm = new THREE.DirectionalLight(0xffe6c8, 0.6);
+  fillWarm.position.set(-extent, extent * 0.55, -extent * 0.6);
+  scene.add(fillWarm);
 
-  const fill = new THREE.DirectionalLight(0x7fa6ff, 0.95);
-  fill.position.set(-extent * 0.5, extent * 0.3, extent);
-  scene.add(fill);
-
-  // High bay lamp deep in the run, so an aisle shot has somewhere to go
-  // instead of ending in black.
-  const bay = new THREE.PointLight(0xffe9c8, extent * 16, extent * 4, 2);
-  bay.position.set(0, 5.4, -extent * 0.4);
-  scene.add(bay);
-
-  const bayNear = new THREE.PointLight(0xffe4bd, extent * 10, extent * 3.2, 2);
-  bayNear.position.set(0, 5.4, extent * 0.35);
-  scene.add(bayNear);
+  const fillCool = new THREE.DirectionalLight(0xdfe9ff, 0.5);
+  fillCool.position.set(-extent * 0.5, extent * 0.3, extent);
+  scene.add(fillCool);
 
   const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(extent * 8, extent * 8),
+    new THREE.PlaneGeometry(extent * 26, extent * 26),
     new THREE.MeshStandardMaterial({
-      color: COLOURS.ground,
-      roughness: 0.92,
+      color: paper,
+      roughness: 0.96,
       metalness: 0,
     }),
   );
@@ -382,5 +383,5 @@ export function stage(
   ground.receiveShadow = true;
   scene.add(ground);
 
-  return { key, rim, fill, hemi, ground };
+  return { key, fillWarm, fillCool, hemi, ground };
 }

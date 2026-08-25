@@ -5,49 +5,43 @@ const RackHeroCanvas = dynamic(() => import("./rack-hero-canvas"));
 
 export default function Hero() {
   return (
-    <section
-      id="top"
-      className="relative isolate min-h-[100dvh] overflow-hidden"
-    >
-      <RackHeroCanvas className="absolute inset-0 lg:left-[24%]" />
+    <section id="top" className="px-4 pt-28 pb-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1180px]">
+        <div className="mx-auto max-w-[46rem] text-center">
+          <h1 className="t-display rise text-balance">
+            Racking, from the site survey up.
+          </h1>
+          <p
+            className="t-body rise mx-auto mt-6 text-[1.15rem]"
+            style={{ animationDelay: "90ms" }}
+          >
+            Heavy duty pallet racking and retail display fixtures, measured,
+            drawn and installed across Johor since 2014.
+          </p>
+          <div
+            className="rise mt-9 flex flex-wrap items-center justify-center gap-3"
+            style={{ animationDelay: "180ms" }}
+          >
+            <a href="#contact" className="btn btn-primary group">
+              Get a free layout
+              <ArrowRight
+                size={17}
+                weight="bold"
+                className="transition-transform duration-200 group-hover:translate-x-0.5"
+              />
+            </a>
+            <a href="#installed" className="btn btn-quiet">
+              See installed work
+            </a>
+          </div>
+        </div>
 
-      {/* scrim, so the headline holds contrast wherever the rack drifts */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/20 lg:bg-gradient-to-r lg:from-ink lg:via-ink/80 lg:to-transparent" />
-
-      <div className="relative mx-auto flex min-h-[100dvh] max-w-[1400px] flex-col justify-end px-6 pt-24 pb-20 lg:justify-center lg:px-10 lg:pb-24">
-        <h1 className="t-display max-w-[13ch] text-balance rise">
-          Racking, from the site survey up.
-        </h1>
-
-        <p
-          className="t-body mt-6 max-w-[46ch] rise"
-          style={{ animationDelay: "90ms" }}
-        >
-          Heavy duty pallet racking and retail display fixtures, measured, drawn
-          and installed across Johor since 2014.
-        </p>
-
+        {/* the rack gets its own soft stage rather than bleeding off the page */}
         <div
-          className="mt-9 flex flex-wrap items-center gap-3 rise"
-          style={{ animationDelay: "180ms" }}
+          className="rise surface mt-14 overflow-hidden shadow-[var(--shadow-soft)]"
+          style={{ animationDelay: "260ms" }}
         >
-          <a
-            href="#contact"
-            className="group inline-flex items-center gap-2 rounded-[4px] bg-accent px-5 py-3 text-[0.95rem] font-medium whitespace-nowrap text-on-accent transition-colors duration-150 hover:bg-accent-dim active:translate-y-px"
-          >
-            Get a free layout
-            <ArrowRight
-              size={16}
-              weight="bold"
-              className="transition-transform duration-200 group-hover:translate-x-0.5"
-            />
-          </a>
-          <a
-            href="#installed"
-            className="inline-flex items-center rounded-[4px] border border-line-strong px-5 py-3 text-[0.95rem] whitespace-nowrap text-text transition-colors duration-150 hover:border-text-3 hover:bg-ink-2 active:translate-y-px"
-          >
-            See installed work
-          </a>
+          <RackHeroCanvas className="h-[52vh] min-h-[340px] w-full sm:h-[58vh] lg:h-[62vh]" />
         </div>
       </div>
     </section>

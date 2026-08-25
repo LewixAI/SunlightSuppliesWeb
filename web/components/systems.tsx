@@ -4,10 +4,10 @@ import { Reveal } from "./reveal";
 
 export default function Systems() {
   return (
-    <section id="systems" className="py-24 lg:py-32">
-      <div className="mx-auto max-w-[1400px] px-6 lg:px-10">
+    <section id="systems" className="py-20 lg:py-28">
+      <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
         <Reveal>
-          <h2 className="t-h2 max-w-[18ch] text-balance">
+          <h2 className="t-h2 max-w-[17ch] text-balance">
             Eighteen systems, rated one to three tonnes.
           </h2>
           <p className="t-body mt-5">
@@ -21,31 +21,31 @@ export default function Systems() {
       {/* horizontal rail: the range is wide, so let it run off the edge rather
           than compress six systems into a grid of thumbnails */}
       <div className="mt-12 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <ul className="flex w-max snap-x snap-mandatory gap-4 px-6 lg:px-10">
+        <ul className="mx-auto flex w-max snap-x snap-mandatory gap-5 px-4 sm:px-6 lg:px-8">
           {SYSTEMS.map((s) => (
             <li
               key={s.slug}
-              className="group w-[78vw] shrink-0 snap-start sm:w-[58vw] lg:w-[30rem]"
+              className="group w-[80vw] shrink-0 snap-start sm:w-[58vw] lg:w-[28rem]"
             >
-              <figure className="overflow-hidden rounded-[4px] border border-line bg-ink-2">
-                <div className="relative aspect-4/3 overflow-hidden">
+              <figure className="surface h-full overflow-hidden">
+                <div className="relative aspect-4/3 overflow-hidden rounded-t-[28px]">
                   <Image
                     src={s.image}
                     alt={`${s.name} installed by Sunlight Supplies`}
                     fill
-                    sizes="(max-width: 640px) 78vw, (max-width: 1024px) 58vw, 30rem"
+                    sizes="(max-width: 640px) 80vw, (max-width: 1024px) 58vw, 28rem"
                     className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                   />
                 </div>
-                <figcaption className="p-6">
+                <figcaption className="p-7">
                   <h3 className="t-h3 flex flex-wrap items-baseline gap-x-3">
                     {s.name}
-                    <span className="text-sm font-normal text-text-3">
+                    <span className="text-[0.9rem] font-normal text-muted">
                       {s.zh}
                     </span>
                   </h3>
-                  <p className="t-body mt-3 text-[0.95rem]">{s.blurb}</p>
-                  <p className="t-num mt-5 text-[0.8rem] text-accent">
+                  <p className="t-body mt-3 text-[0.98rem]">{s.blurb}</p>
+                  <p className="t-num mt-5 inline-flex rounded-full bg-tint-warm px-3.5 py-1.5 text-[0.85rem] font-medium text-ink">
                     {s.load}
                   </p>
                 </figcaption>
@@ -55,13 +55,13 @@ export default function Systems() {
         </ul>
       </div>
 
-      <div className="mx-auto max-w-[1400px] px-6 lg:px-10">
+      <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
         <Reveal className="mt-10">
-          <ul className="flex flex-wrap gap-2">
+          <ul className="flex flex-wrap gap-2.5">
             {SYSTEMS_MORE.map((s) => (
               <li
                 key={s}
-                className="rounded-[4px] border border-line px-3 py-1.5 text-[0.85rem] text-text-2"
+                className="rounded-full bg-surface px-4 py-2 text-[0.9rem] text-body"
               >
                 {s}
               </li>

@@ -6,16 +6,16 @@ import { List, X } from "@phosphor-icons/react";
 import { COMPANY, NAV } from "@/lib/data";
 
 export default function SiteHeader() {
-  const [solid, setSolid] = useState(false);
+  const [floating, setFloating] = useState(false);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     // IntersectionObserver on a sentinel rather than a scroll listener
     const sentinel = document.createElement("div");
     sentinel.style.cssText =
-      "position:absolute;top:0;left:0;width:1px;height:88px;pointer-events:none";
+      "position:absolute;top:0;left:0;width:1px;height:64px;pointer-events:none";
     document.body.appendChild(sentinel);
-    const io = new IntersectionObserver(([e]) => setSolid(!e.isIntersecting), {
+    const io = new IntersectionObserver(([e]) => setFloating(!e.isIntersecting), {
       threshold: 0,
     });
     io.observe(sentinel);
@@ -33,16 +33,14 @@ export default function SiteHeader() {
   }, [open]);
 
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
-        solid ? "border-b border-line bg-ink/85 backdrop-blur-xl" : ""
-      }`}
-    >
-      {/* over the hero the nav sits on live 3D, so it carries its own scrim */}
-      {!solid && (
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-ink/90 to-transparent" />
-      )}
-      <div className="relative mx-auto flex h-[68px] max-w-[1400px] items-center gap-8 px-6 lg:px-10">
+    <header className="fixed inset-x-0 top-0 z-50 px-4 pt-3 sm:px-6 lg:px-8">
+      <div
+        className={`mx-auto flex h-[60px] max-w-[1180px] items-center gap-8 rounded-full px-4 transition-all duration-300 sm:px-5 ${
+          floating || open
+            ? "bg-paper/85 shadow-[var(--shadow-soft)] backdrop-blur-xl"
+            : ""
+        }`}
+      >
         <a
           href="#top"
           className="flex shrink-0 items-center gap-2.5"
@@ -51,22 +49,22 @@ export default function SiteHeader() {
           <Image
             src="/brand/mark.png"
             alt=""
-            width={28}
-            height={28}
+            width={30}
+            height={30}
             priority
-            className="h-7 w-7"
+            className="h-[30px] w-[30px]"
           />
-          <span className="text-[0.95rem] font-medium tracking-tight">
+          <span className="text-[1rem] font-medium tracking-tight text-ink">
             Sunlight
           </span>
         </a>
 
-        <nav className="ml-auto hidden items-center gap-7 lg:flex">
+        <nav className="ml-auto hidden items-center gap-1 lg:flex">
           {NAV.map((n) => (
             <a
               key={n.href}
               href={n.href}
-              className="text-[0.9rem] text-text-2 transition-colors hover:text-text"
+              className="rounded-full px-3.5 py-2 text-[0.95rem] text-body transition-colors hover:bg-surface hover:text-ink"
             >
               {n.label}
             </a>
@@ -75,7 +73,7 @@ export default function SiteHeader() {
 
         <a
           href="#contact"
-          className="ml-auto hidden rounded-[4px] bg-accent px-4 py-2 text-[0.9rem] font-medium whitespace-nowrap text-on-accent transition-transform duration-150 hover:bg-accent-dim active:translate-y-px lg:ml-0 lg:block"
+          className="btn btn-primary ml-auto hidden !px-5 !py-2.5 !text-[0.95rem] lg:ml-2 lg:flex"
         >
           Get a free layout
         </a>
@@ -83,7 +81,7 @@ export default function SiteHeader() {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="ml-auto grid h-10 w-10 place-items-center rounded-[4px] text-text lg:hidden"
+          className="ml-auto grid h-10 w-10 place-items-center rounded-full bg-surface text-ink lg:hidden"
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
         >
@@ -92,14 +90,14 @@ export default function SiteHeader() {
       </div>
 
       {open && (
-        <div className="border-t border-line bg-ink lg:hidden">
-          <nav className="mx-auto flex max-w-[1400px] flex-col px-6 py-4">
+        <div className="mx-auto mt-2 max-w-[1180px] rounded-[28px] bg-paper p-3 shadow-[var(--shadow-lift)] lg:hidden">
+          <nav className="flex flex-col">
             {NAV.map((n) => (
               <a
                 key={n.href}
                 href={n.href}
                 onClick={() => setOpen(false)}
-                className="border-b border-line py-3.5 text-[1.05rem] text-text-2"
+                className="rounded-2xl px-4 py-3.5 text-[1.05rem] text-body transition-colors hover:bg-surface"
               >
                 {n.label}
               </a>
@@ -107,7 +105,7 @@ export default function SiteHeader() {
             <a
               href="#contact"
               onClick={() => setOpen(false)}
-              className="mt-5 rounded-[4px] bg-accent px-4 py-3 text-center text-[0.95rem] font-medium text-on-accent"
+              className="btn btn-primary mt-2 justify-center"
             >
               Get a free layout
             </a>

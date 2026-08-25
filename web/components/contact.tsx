@@ -5,81 +5,83 @@ import { Reveal } from "./reveal";
 
 export default function Contact() {
   return (
-    <section id="contact" className="border-t border-line py-24 lg:py-32">
-      <div className="mx-auto max-w-[1400px] px-6 lg:px-10">
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-16">
-          <Reveal className="lg:col-span-7">
-            <h2 className="t-h2 max-w-[15ch] text-balance">
-              Three counters in Johor Bahru.
-            </h2>
-            <p className="t-body mt-5">
-              Tell us the building and roughly what goes in it. The measurement
-              and the layout drawing cost nothing, and you keep the drawing
-              either way.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a
-                href={`https://wa.me/${COMPANY.whatsapp}?text=${encodeURIComponent(
-                  "Hi Sunlight, I would like a free layout for my warehouse.",
-                )}`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-[4px] bg-accent px-5 py-3 text-[0.95rem] font-medium whitespace-nowrap text-on-accent transition-colors duration-150 hover:bg-accent-dim active:translate-y-px"
-              >
-                Get a free layout
-                <ArrowUpRight size={16} weight="bold" />
-              </a>
-              <a
-                href={`mailto:${COMPANY.email}`}
-                className="inline-flex items-center rounded-[4px] border border-line-strong px-5 py-3 text-[0.95rem] whitespace-nowrap text-text transition-colors duration-150 hover:border-text-3 hover:bg-ink-2 active:translate-y-px"
-              >
-                {COMPANY.email}
-              </a>
-            </div>
-          </Reveal>
+    <section id="contact" className="py-20 lg:py-28">
+      <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
+        <Reveal>
+          <div className="overflow-hidden rounded-[28px] bg-tint-warm">
+            <div className="grid grid-cols-1 items-center gap-8 p-8 sm:p-12 lg:grid-cols-2 lg:gap-12">
+              <div>
+                <h2 className="t-h2 max-w-[15ch] text-balance">
+                  Three counters in Johor Bahru.
+                </h2>
+                <p className="t-body mt-5 text-ink/70">
+                  Tell us the building and roughly what goes in it. The
+                  measurement and the layout drawing cost nothing, and you keep
+                  the drawing either way.
+                </p>
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <a
+                    href={`https://wa.me/${COMPANY.whatsapp}?text=${encodeURIComponent(
+                      "Hi Sunlight, I would like a free layout for my warehouse.",
+                    )}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn btn-primary"
+                  >
+                    Get a free layout
+                    <ArrowUpRight size={17} weight="bold" />
+                  </a>
+                  <a
+                    href={`mailto:${COMPANY.email}`}
+                    className="btn bg-paper text-ink hover:bg-paper/70"
+                  >
+                    {COMPANY.email}
+                  </a>
+                </div>
+              </div>
 
-          <Reveal className="lg:col-span-5" delay={0.08}>
-            <div className="relative aspect-[600/289] overflow-hidden rounded-[4px] border border-line">
-              <Image
-                src="/site/hq-building.jpg"
-                alt="Sunlight Supplies head office at Setia Business Park, Johor Bahru"
-                fill
-                sizes="(max-width: 1024px) 100vw, 40vw"
-                className="object-cover"
-              />
+              <div className="relative aspect-[600/289] overflow-hidden rounded-[24px]">
+                <Image
+                  src="/site/hq-building.jpg"
+                  alt="Sunlight Supplies head office at Setia Business Park, Johor Bahru"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 45vw"
+                  className="object-cover"
+                />
+              </div>
             </div>
-          </Reveal>
-        </div>
+          </div>
+        </Reveal>
 
-        <ul className="mt-16 grid grid-cols-1 gap-px overflow-hidden rounded-[4px] border border-line bg-line md:grid-cols-3">
+        <ul className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
           {LOCATIONS.map((l, i) => (
-            <li key={l.name} className="bg-ink">
+            <li key={l.name}>
               <Reveal delay={i * 0.06} y={14}>
-                <div className="flex h-full flex-col p-7">
+                <div className="surface flex h-full flex-col p-7">
                   <h3 className="t-h3">{l.name}</h3>
-                  <p className="mt-1 text-[0.8rem] text-text-3">{l.role}</p>
-                  <p className="mt-5 text-[0.92rem] leading-relaxed text-text-2">
+                  <p className="mt-1 text-[0.85rem] text-faint">{l.role}</p>
+                  <p className="mt-5 text-[0.95rem] leading-relaxed text-body">
                     {l.address}
                   </p>
-                  <dl className="mt-6 space-y-1.5 text-[0.85rem]">
+                  <dl className="mt-6 space-y-1.5 text-[0.9rem]">
                     <div className="flex gap-3">
-                      <dt className="w-14 text-text-3">Tel</dt>
-                      <dd className="t-num text-text-2">{l.tel}</dd>
+                      <dt className="w-14 text-faint">Tel</dt>
+                      <dd className="t-num text-body">{l.tel}</dd>
                     </div>
                     <div className="flex gap-3">
-                      <dt className="w-14 text-text-3">Mobile</dt>
-                      <dd className="t-num text-text-2">{l.mobile}</dd>
+                      <dt className="w-14 text-faint">Mobile</dt>
+                      <dd className="t-num text-body">{l.mobile}</dd>
                     </div>
                     <div className="flex gap-3">
-                      <dt className="w-14 text-text-3">Fax</dt>
-                      <dd className="t-num text-text-2">{l.fax}</dd>
+                      <dt className="w-14 text-faint">Fax</dt>
+                      <dd className="t-num text-body">{l.fax}</dd>
                     </div>
                   </dl>
                   <a
                     href={l.maps}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-7 inline-flex items-center gap-1.5 self-start text-[0.88rem] text-accent transition-opacity hover:opacity-80"
+                    className="mt-7 inline-flex items-center gap-1.5 self-start rounded-full bg-paper px-4 py-2 text-[0.9rem] font-medium text-ink transition-opacity hover:opacity-75"
                   >
                     Open in Maps
                     <ArrowUpRight size={14} weight="bold" />
