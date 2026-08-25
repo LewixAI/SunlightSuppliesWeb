@@ -174,6 +174,8 @@ type Bucket = {
   mesh: THREE.InstancedMesh;
   base: THREE.Matrix4[];
   total: number;
+  /** index currently carrying the drop-in transform, -1 when none */
+  animating: number;
 };
 
 export function buildRackObject(model: RackModel): RackParts {
@@ -257,7 +259,7 @@ export function buildRackObject(model: RackModel): RackParts {
     group.add(mesh);
 
     const arr = buckets.get(kind) ?? [];
-    arr.push({ mesh, base, total: list.length });
+    arr.push({ mesh, base, total: list.length, animating: -1 });
     buckets.set(kind, arr);
   };
 
@@ -281,11 +283,30 @@ export function buildRackObject(model: RackModel): RackParts {
   const quat = new THREE.Quaternion();
   const scl = new THREE.Vector3();
 
+  /**
+   * Show `shown` parts, with the one being placed dropping into position.
+   *
+   * The drop-in writes a raised, shrunken matrix over the frontier instance,
+   * so that instance MUST be put back before the frontier moves on. Skipping
+   * the restore leaves every index the frontier ever passed through stuck at
+   * whatever partial transform it last held - which is what put half-size
+   * decking panels floating between the levels. A scroll that jumps skips
+   * indices outright, so restoring only "the previous one" is not enough
+   * either; the stale index is tracked explicitly.
+   */
   function reveal(kind: PartKind, shown: number, frontier: number) {
     for (const b of buckets.get(kind) ?? []) {
       const full = Math.max(0, Math.min(b.total, Math.floor(shown)));
       const hasFrontier = frontier > 0.001 && full < b.total;
+
+      if (b.animating >= 0 && b.animating !== full) {
+        b.mesh.setMatrixAt(b.animating, b.base[b.animating]);
+        b.mesh.instanceMatrix.needsUpdate = true;
+        b.animating = -1;
+      }
+
       b.mesh.count = full + (hasFrontier ? 1 : 0);
+
       if (hasFrontier) {
         // the piece being placed drops the last few centimetres into position
         const t = Math.min(1, frontier);
@@ -298,6 +319,11 @@ export function buildRackObject(model: RackModel): RackParts {
         );
         b.mesh.setMatrixAt(full, tmp);
         b.mesh.instanceMatrix.needsUpdate = true;
+        b.animating = full;
+      } else if (b.animating === full) {
+        b.mesh.setMatrixAt(full, b.base[full]);
+        b.mesh.instanceMatrix.needsUpdate = true;
+        b.animating = -1;
       }
     }
   }
@@ -308,6 +334,7 @@ export function buildRackObject(model: RackModel): RackParts {
         b.mesh.count = b.total;
         b.base.forEach((m, i) => b.mesh.setMatrixAt(i, m));
         b.mesh.instanceMatrix.needsUpdate = true;
+        b.animating = -1;
       }
   }
 
