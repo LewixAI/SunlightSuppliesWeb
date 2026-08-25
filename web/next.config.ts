@@ -11,6 +11,11 @@ const basePath = process.env.BASE_PATH ?? "";
 const nextConfig: NextConfig = {
   output: "export",
   basePath,
+  /* The image loader runs in the browser bundle, so it needs the prefix as a
+     NEXT_PUBLIC_ value. Deriving it here rather than setting a second variable
+     in the workflow: two variables that must agree will eventually disagree,
+     and the failure is silent — the build succeeds and every image 404s. */
+  env: { NEXT_PUBLIC_BASE_PATH: basePath },
   trailingSlash: true,
   images: {
     /* See image-loader.ts — `unoptimized` would drop the basePath. */
