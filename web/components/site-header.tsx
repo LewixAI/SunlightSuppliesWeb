@@ -72,25 +72,24 @@ export default function SiteHeader() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-4 pt-3 sm:px-6 lg:px-8">
-      {/* scrim sits first so the bar and the panel paint over it */}
-      <AnimatePresence>
-        {open && (
-          <motion.button
-            key="scrim"
-            type="button"
-            aria-label="Close menu"
-            onClick={() => setOpen(false)}
-            className="fixed inset-0 cursor-default bg-ink/15 backdrop-blur-[3px] lg:hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: reduce ? 0 : 0.22, ease }}
-          />
-        )}
-      </AnimatePresence>
+      {/* An invisible catcher, so tapping off the menu still closes it. No
+          tint and no backdrop blur: dimming the page fought the warm palette,
+          and a backdrop-filter over the hero's WebGL canvas smeared it into
+          something that read as a rendering fault. The panel carries its own
+          shadow, which is enough to separate it. */}
+      {open && (
+        <button
+          type="button"
+          aria-label="Close menu"
+          onClick={() => setOpen(false)}
+          className="fixed inset-0 cursor-default lg:hidden"
+        />
+      )}
 
       <div
-        className={`relative mx-auto flex h-[60px] max-w-[1180px] items-center gap-8 rounded-full px-4 transition-all duration-300 sm:px-5 ${
+        /* select-none: a double tap near the wordmark or the toggle otherwise
+           leaves the selection highlight sitting behind the brand. */
+        className={`relative mx-auto flex h-[60px] max-w-[1180px] select-none items-center gap-8 rounded-full px-4 transition-all duration-300 sm:px-5 ${
           floating || open
             ? "bg-paper/85 shadow-[var(--shadow-soft)] backdrop-blur-xl"
             : ""
