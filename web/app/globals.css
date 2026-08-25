@@ -190,6 +190,24 @@ body {
   }
 }
 
+/* Hero objects drift very slightly so the page has some life in it without
+   anything demanding attention. Each one gets its own duration and delay from
+   the component, otherwise they bob in unison and read as a carousel. */
+@keyframes drift {
+  from { transform: translate3d(0, 0, 0) rotate(var(--tilt, 0deg)); }
+  to   { transform: translate3d(0, -14px, 0) rotate(calc(var(--tilt, 0deg) + 2.5deg)); }
+}
+
+.drift {
+  animation: drift var(--dur, 7s) ease-in-out infinite alternate;
+  animation-delay: var(--delay, 0s);
+  transform: rotate(var(--tilt, 0deg));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drift { animation: none; }
+}
+
 /* --- motion -------------------------------------------------------------- */
 
 @keyframes rise {

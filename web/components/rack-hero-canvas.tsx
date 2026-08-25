@@ -16,11 +16,9 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { buildRack, STAGES } from "@/lib/rack";
-import { buildRackObject, stage } from "@/lib/rack-three";
+import { buildRackObject, fitDistance, stage } from "@/lib/rack-three";
 
-const DIR = new THREE.Vector3(0.62, 0.26, 0.74).normalize();
-/** bounding radius of the run, metres, used to frame at any aspect */
-const R = 4.85;
+const DIR = new THREE.Vector3(0.62, 0.28, 0.73).normalize();
 
 export default function RackHeroCanvas({
   className = "",
@@ -46,19 +44,15 @@ export default function RackHeroCanvas({
     el.appendChild(renderer.domElement);
     renderer.domElement.style.cssText = "display:block;width:100%;height:100%";
 
-    const model = buildRack({ rows: 1, bays: 4, load: 0.55 });
+    // two runs with a gangway: the hero card is panoramic, and a single run
+    // leaves most of that width empty
+    const model = buildRack({ rows: 2, bays: 5, aisle: 2600, load: 0.6 });
     const rack = buildRackObject(model);
     scene.add(rack.group);
     stage(renderer, scene, 9, 1.0, 0xf8f7f5);
 
-    const target = new THREE.Vector3(0, 2.75, 0);
-
-    /** distance that fits the run whichever way the card is shaped */
-    function distance() {
-      const vHalf = THREE.MathUtils.degToRad(camera.fov / 2);
-      const hHalf = Math.atan(Math.tan(vHalf) * camera.aspect);
-      return (R / Math.sin(Math.min(vHalf, hHalf))) * 1.02;
-    }
+    const target = new THREE.Vector3();
+    let dist = 20;
 
     function fit() {
       const w = el!.clientWidth;
@@ -66,9 +60,14 @@ export default function RackHeroCanvas({
       if (!w || !h) return;
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
-      camera.position.copy(DIR).multiplyScalar(distance()).add(target);
-      camera.lookAt(target);
       camera.updateProjectionMatrix();
+      // 0.6 lets the ends of the run and the near baseplates crop, which is
+      // what makes it fill a panoramic card instead of sitting in the middle
+      const f = fitDistance(rack.group, camera, DIR, 0.72);
+      dist = f.distance;
+      target.copy(f.centre);
+      camera.position.copy(DIR).multiplyScalar(dist).add(target);
+      camera.lookAt(target);
     }
     fit();
     const ro = new ResizeObserver(fit);
@@ -135,7 +134,7 @@ export default function RackHeroCanvas({
         camera.position
           .copy(DIR)
           .applyAxisAngle(up, swing)
-          .multiplyScalar(distance())
+          .multiplyScalar(dist)
           .add(target);
         camera.position.y += eased.y * -0.9;
         camera.lookAt(target);

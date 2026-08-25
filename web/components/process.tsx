@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { PROCESS } from "@/lib/data";
 import { Reveal } from "./reveal";
 
@@ -23,9 +24,20 @@ export default function Process() {
         <ol className="flex flex-col gap-4 lg:col-span-7">
           {PROCESS.map((s, i) => (
             <Reveal key={s.title} delay={i * 0.06}>
-              <li className="surface p-7 lg:p-8">
-                <h3 className="t-h3">{s.title}</h3>
-                <p className="t-body mt-3 text-[0.98rem]">{s.body}</p>
+              <li className="surface flex items-start gap-5 p-6 sm:gap-7 sm:p-8">
+                <div className="grid size-16 shrink-0 place-items-center rounded-full bg-paper sm:size-20">
+                  <Image
+                    src={s.icon}
+                    alt=""
+                    width={160}
+                    height={160}
+                    className="size-11 sm:size-14"
+                  />
+                </div>
+                <div>
+                  <h3 className="t-h3">{s.title}</h3>
+                  <p className="t-body mt-2 text-[0.98rem]">{s.body}</p>
+                </div>
               </li>
             </Reveal>
           ))}

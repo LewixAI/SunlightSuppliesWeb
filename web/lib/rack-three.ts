@@ -311,6 +311,69 @@ export function buildRackObject(model: RackModel): RackParts {
   return { group, reveal, revealAll, dispose, counts: model.counts };
 }
 
+/**
+ * Distance along `dir` at which the whole object fits the frustum.
+ *
+ * Binary search over the projected corners rather than a hand-tuned radius:
+ * a bounding SPHERE massively over-estimates a rack, which is long and thin,
+ * and leaves it marooned in the middle of a wide card. Runs once per resize.
+ *
+ * `fill` shrinks the box before fitting. Framing the WHOLE box is dominated by
+ * one worst-case corner - the near bottom one, which is closest to the camera
+ * and so subtends the widest angle - and that corner alone pushes the subject
+ * down to about 40% of the frame. Shrinking lets the extremities crop, which
+ * for a long run reads as it continuing past the edge.
+ */
+export function fitDistance(
+  object: THREE.Object3D,
+  camera: THREE.PerspectiveCamera,
+  dir: THREE.Vector3,
+  fill = 1,
+  margin = 1.04,
+) {
+  const box = new THREE.Box3().setFromObject(object);
+  const centre = box.getCenter(new THREE.Vector3());
+  if (fill !== 1) {
+    const half = box.getSize(new THREE.Vector3()).multiplyScalar(fill / 2);
+    box.set(centre.clone().sub(half), centre.clone().add(half));
+  }
+  const corners: THREE.Vector3[] = [];
+  for (const x of [box.min.x, box.max.x])
+    for (const y of [box.min.y, box.max.y])
+      for (const z of [box.min.z, box.max.z])
+        corners.push(new THREE.Vector3(x, y, z));
+
+  const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const tanH = tanV * camera.aspect;
+
+  const forward = dir.clone().normalize().negate(); // camera looks back along dir
+  const right = new THREE.Vector3()
+    .crossVectors(forward, new THREE.Vector3(0, 1, 0))
+    .normalize();
+  const up = new THREE.Vector3().crossVectors(right, forward).normalize();
+
+  const fits = (d: number) => {
+    const pos = centre.clone().addScaledVector(dir, d);
+    for (const c of corners) {
+      const v = c.clone().sub(pos);
+      const depth = v.dot(forward);
+      if (depth <= 0.01) return false;
+      if (Math.abs(v.dot(right)) > tanH * depth) return false;
+      if (Math.abs(v.dot(up)) > tanV * depth) return false;
+    }
+    return true;
+  };
+
+  let lo = 0.1;
+  let hi = 400;
+  for (let i = 0; i < 40; i++) {
+    const mid = (lo + hi) / 2;
+    if (fits(mid)) hi = mid;
+    else lo = mid;
+  }
+  return { distance: hi * margin, centre };
+}
+
 /* --- staging ------------------------------------------------------------- */
 
 /**

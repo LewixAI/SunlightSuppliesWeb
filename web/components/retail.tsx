@@ -7,14 +7,36 @@ export default function Retail() {
     <section id="retail" className="py-20 lg:py-28">
       <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
         <Reveal>
-          <h2 className="t-h2 max-w-[18ch] text-balance">
-            The other half of the business is shop floors.
-          </h2>
-          <p className="t-body mt-5">
-            Gondolas, oppa racks, counters, trolleys, mannequins and the wire
-            and hook work that goes with them. Same three counters, same stock,
-            different buyer.
-          </p>
+          <div className="flex items-center justify-between gap-8">
+            <div>
+              <h2 className="t-h2 max-w-[18ch] text-balance">
+                The other half of the business is shop floors.
+              </h2>
+              <p className="t-body mt-5">
+                Gondolas, oppa racks, counters, trolleys, mannequins and the
+                wire and hook work that goes with them. Same three counters,
+                same stock, different buyer.
+              </p>
+            </div>
+            <div aria-hidden="true" className="hidden shrink-0 items-end gap-3 lg:flex">
+              <Image
+                src="/objects/shopping-basket.png"
+                alt=""
+                width={200}
+                height={200}
+                className="drift w-24"
+                style={{ "--tilt": "-7deg", "--dur": "7.5s" } as React.CSSProperties}
+              />
+              <Image
+                src="/objects/gondola.png"
+                alt=""
+                width={200}
+                height={200}
+                className="drift w-28"
+                style={{ "--tilt": "5deg", "--dur": "8.5s", "--delay": "0.8s" } as React.CSSProperties}
+              />
+            </div>
+          </div>
         </Reveal>
 
         <ul className="mt-14 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">

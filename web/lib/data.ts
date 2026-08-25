@@ -317,21 +317,25 @@ export const RETAIL = [
 export const PROCESS = [
   {
     n: "01",
+    icon: "/objects/tape-measure.png",
     title: "Shop measurement",
     body: "Someone comes out and measures the building, the columns, the doors and the truck path. Free, and before any drawing exists.",
   },
   {
     n: "02",
+    icon: "/objects/blueprint.png",
     title: "AutoCAD layout",
     body: "You get a dimensioned layout drawing to approve. Also free, and it is the drawing everything downstream is built from.",
   },
   {
     n: "03",
+    icon: "/objects/quote-doc.png",
     title: "Quotation off the drawing",
     body: "Components counted from the approved layout, not estimated. What you approve is what gets fabricated and what gets invoiced.",
   },
   {
     n: "04",
+    icon: "/objects/wrench.png",
     title: "Install, or dismantle",
     body: "Ready stock, own crew, all systems. Relocations and reconfigurations are the same team taking it back down.",
   },
