@@ -1,3 +1,6 @@
 node_modules/
 .DS_Store
 research/raw/
+web/node_modules/
+web/.next/
+web/out/

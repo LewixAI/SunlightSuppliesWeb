@@ -1,0 +1,157 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Sunlight Supplies — design tokens.
+
+   Theme is LOCKED DARK. A warehouse is a dark room, the 3D rack reads far
+   better against near-black, and the brand orange only reaches full strength
+   on a dark ground. No section inverts.
+
+   Palette source of truth: their own stylesheet, where #F8941C appears 66
+   times. Their racks are cobalt uprights + safety-orange beams (see
+   assets/gallery), so the blue lives in the 3D scene as a material, never as
+   a second UI accent.
+
+   White on #F8941C is 3.2:1, so accent surfaces always carry INK text.
+--------------------------------------------------------------------------- */
+
+:root {
+  --ink: #0b0c0d;
+  --ink-2: #121416;
+  --ink-3: #191c1f;
+  --line: rgb(255 255 255 / 0.09);
+  --line-strong: rgb(255 255 255 / 0.16);
+
+  --text: #f2f3f3;
+  --text-2: #9aa1a7;
+  --text-3: #6b7278;
+
+  --accent: #f8941c;
+  --accent-dim: #c9761a;
+  --on-accent: #0b0c0d;
+
+  /* one radius, everywhere. Industrial, not rounded-friendly. */
+  --r: 4px;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-accent: var(--accent);
+  --color-accent-dim: var(--accent-dim);
+  --color-on-accent: var(--on-accent);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --radius-card: var(--r);
+}
+
+html {
+  background: var(--ink);
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* --- type ---------------------------------------------------------------- */
+
+.t-display {
+  font-size: clamp(2.6rem, 5.6vw, 4.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.028em;
+  font-weight: 500;
+}
+
+.t-h2 {
+  font-size: clamp(1.9rem, 3.6vw, 2.9rem);
+  line-height: 1.06;
+  letter-spacing: -0.024em;
+  font-weight: 500;
+}
+
+.t-h3 {
+  font-size: clamp(1.25rem, 1.9vw, 1.55rem);
+  line-height: 1.18;
+  letter-spacing: -0.018em;
+  font-weight: 500;
+}
+
+.t-body {
+  font-size: 1.0625rem;
+  line-height: 1.62;
+  color: var(--text-2);
+  max-width: 62ch;
+}
+
+.t-label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.t-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* --- surfaces ------------------------------------------------------------ */
+
+.hairline {
+  border: 1px solid var(--line);
+}
+
+.rule {
+  height: 1px;
+  background: var(--line);
+}
+
+/* --- motion -------------------------------------------------------------- */
+
+@keyframes rise {
+  from { opacity: 0; transform: translate3d(0, 18px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+
+.rise {
+  animation: rise 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise { animation: none; opacity: 1; transform: none; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
