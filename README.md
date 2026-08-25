@@ -4,9 +4,17 @@ Website for **Sunlight Supplies Sdn Bhd** — racking systems and retail display
 fixtures, Johor Bahru. Same client as
 [RackForge](https://github.com/LewixAI/RackForge).
 
-Nothing is built yet. This commit is the research and the asset library.
+**Live preview: <https://lewixai.github.io/SunlightSuppliesWeb/>** — a concept
+build, not signed off by the client. The five questions at the bottom of this
+file are still open.
 
 ## Where things are
+
+- **`web/`** — the site. Next.js 16, Tailwind v4, and a procedural three.js
+  rack built from the same part-list idea as RackForge's `assemble()`:
+  `web/lib/rack.ts` emits millimetre geometry as plain data, `rack-three.ts`
+  turns it into instanced meshes. The picture and the spec readout count from
+  one source, so they cannot drift apart.
 
 - **`research/company-profile.md`** — read this first. Who they are, what they
   sell, their locations, their clients, their brand, and what is wrong with the
@@ -40,6 +48,21 @@ what are largely different buyers. The old site mixed them into one product menu
 Their heavy-duty racking service list already promises "Free AutoCAD Drawing" —
 the same drawing RackForge parses. The site and RackForge are two ends of one
 funnel.
+
+## Deploying
+
+`main` builds and publishes to GitHub Pages on every push
+(`.github/workflows/pages.yml`). It is a static export — no server, no image
+optimiser — served from a subpath, which is the only thing that needs care:
+
+- `next.config.ts` takes `BASE_PATH` from the workflow. A custom domain would
+  drop it and serve from the root instead.
+- `image-loader.ts` exists because `images.unoptimized` bypasses the loader and
+  emits `src` without the basePath, so every image 404s on a project page.
+  Metadata icons never get the prefix either — the favicon is prefixed by hand
+  in `app/layout.tsx`.
+- `/debug/rack` is a development instrument (orthographic views, a millimetre
+  extents table, and a scrub regression check). CI deletes it before building.
 
 ## Open questions for the client
 
