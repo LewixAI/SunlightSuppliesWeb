@@ -15,19 +15,15 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { buildRack, STAGES, type PartKind } from "@/lib/rack";
-import { buildRackObject, stage } from "@/lib/rack-three";
+import { buildRackObject, fitDistance, stage } from "@/lib/rack-three";
 
-type Key = { dir: THREE.Vector3; radius: number; y: number };
-
-const PATH: Key[] = [
-  { dir: new THREE.Vector3(0.8, 0.12, 0.6), radius: 5.4, y: 0.4 },
-  { dir: new THREE.Vector3(0.72, 0.16, 0.68), radius: 8.8, y: 1.8 },
-  { dir: new THREE.Vector3(0.52, 0.19, 0.84), radius: 10.6, y: 2.5 },
-  { dir: new THREE.Vector3(0.68, 0.22, 0.7), radius: 11.6, y: 2.8 },
-  { dir: new THREE.Vector3(0.82, 0.2, 0.55), radius: 11.2, y: 2.9 },
-  { dir: new THREE.Vector3(0.62, 0.25, 0.75), radius: 13.2, y: 3.0 },
-];
-PATH.forEach((k) => k.dir.normalize());
+/* The camera swings from a low near-elevation over the baseplates round to a
+   three-quarter as the rack gains height. Distance is not on this path: it is
+   measured from whatever has actually been placed, so stage one frames six
+   baseplates rather than leaving them as specks in the middle of an empty
+   card. */
+const DIR_START = new THREE.Vector3(0.86, 0.16, 0.48).normalize();
+const DIR_END = new THREE.Vector3(0.66, 0.3, 0.69).normalize();
 
 export default function BuildSequence() {
   const wrap = useRef<HTMLDivElement>(null);
@@ -91,27 +87,46 @@ export default function BuildSequence() {
       return counts;
     }
 
-    function placeCamera(p: number) {
-      const f = Math.max(0, Math.min(0.9999, p)) * (PATH.length - 1);
-      const i = Math.floor(f);
-      const t = f - i;
-      const e = t * t * (3 - 2 * t);
-      const a = PATH[i];
-      const b = PATH[Math.min(PATH.length - 1, i + 1)];
-      const dir = a.dir.clone().lerp(b.dir, e).normalize();
-      const radius = a.radius + (b.radius - a.radius) * e;
-      const spread = 6.4 / Math.min(1.3, camera.aspect);
-      target.set(0, a.y + (b.y - a.y) * e, 0);
-      camera.position
-        .copy(dir)
-        .multiplyScalar(radius + spread)
-        .add(target);
+    const dir = new THREE.Vector3();
+    const fill = new THREE.Vector3();
+    let dist = 12;
+    let framed = false;
+
+    /** Fit to the parts placed so far, not to the finished rack. */
+    function placeCamera(p: number, dt: number) {
+      const e = Math.max(0, Math.min(1, p));
+      dir.copy(DIR_START).lerp(DIR_END, e * e * (3 - 2 * e)).normalize();
+
+      // instanced bounds cache against the draw count, so clear it or the
+      // measurement is of the whole rack from the first frame
+      rack.group.traverse((o) => {
+        const mesh = o as THREE.InstancedMesh;
+        if (mesh.isInstancedMesh) mesh.boundingBox = null;
+      });
+      /* Crop along the run early on. Framing the whole 11 m footprint while
+         only the baseplates are down makes them ten pixels wide; opening the
+         crop as the rack grows keeps every stage readable at its own scale. */
+      fill.set(0.97, 0.99, Math.min(1, 0.3 + e * 1.15));
+      const f = fitDistance(rack.group, camera, dir, fill, 1.12);
+
+      if (Number.isFinite(f.distance) && f.distance > 0.5) {
+        /* Damped so the frame eases open as the rack grows rather than
+           snapping. Rate is per second, so it behaves the same at any frame
+           rate; the first fit snaps so nothing starts off screen. */
+        const k = framed ? smooth(dt, 7) : 1;
+        dist += (f.distance - dist) * k;
+        target.lerp(f.centre, k);
+        framed = true;
+      }
+      camera.position.copy(dir).multiplyScalar(dist).add(target);
       camera.lookAt(target);
     }
 
-    if (reduce) {
+    /* Same reasoning as the hero: with the document hidden nothing ticks, so
+       show the finished rack rather than an empty card. */
+    if (reduce || document.hidden) {
       rack.revealAll();
-      placeCamera(1);
+      placeCamera(1, 1);
       setPlaced(totals);
       setStageIndex(STAGES.length - 1);
       renderer.render(scene, camera);
@@ -128,9 +143,17 @@ export default function BuildSequence() {
     let lastStage = -1;
     let lastCounts = "";
     let shown = 0;
+    let lastT = 0;
 
-    function tick() {
+    /* Exponential smoothing per SECOND, not per frame. A fixed per-frame
+       fraction converges twice as fast on a 120 Hz display and crawls when the
+       tab is throttled in the background. */
+    const smooth = (dt: number, rate: number) => 1 - Math.exp(-dt * rate);
+
+    function tick(now: number) {
       raf = visible ? requestAnimationFrame(tick) : 0;
+      const dt = lastT ? Math.min(0.1, (now - lastT) / 1000) : 1 / 60;
+      lastT = now;
 
       /* Scroll progress straight off the section's rect. One layout read a
          frame inside a loop that is already running, and no scroll listener. */
@@ -139,9 +162,9 @@ export default function BuildSequence() {
       progress.current =
         travel > 0 ? Math.max(0, Math.min(1, -rect.top / travel)) : 0;
 
-      shown += (progress.current - shown) * 0.14;
+      shown += (progress.current - shown) * smooth(dt, 9);
       const counts = applyStages(shown);
-      placeCamera(shown);
+      placeCamera(shown, dt);
 
       const idx = Math.min(STAGES.length - 1, Math.floor(shown * STAGES.length));
       if (idx !== lastStage) {
@@ -185,7 +208,7 @@ export default function BuildSequence() {
       className="relative"
       style={{ height: reduced ? "auto" : "600vh" }}
     >
-      <div className="sticky top-0 flex h-[100dvh] items-center overflow-hidden pt-[76px] lg:pt-0">
+      <div className="sticky top-0 flex h-[100dvh] items-center overflow-hidden pt-[76px]">
         <div className="mx-auto grid w-full max-w-[1180px] grid-cols-1 items-center gap-6 px-4 sm:px-6 lg:grid-cols-12 lg:gap-10 lg:px-8">
           {/* the rack keeps its own soft stage; the copy sits beside it rather
               than on top, so nothing needs a scrim to stay readable */}

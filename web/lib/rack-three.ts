@@ -85,41 +85,55 @@ function beamGeometry(len: number) {
   return g;
 }
 
-/** A stringer pallet, merged into one geometry. */
+/**
+ * A block pallet, merged into one geometry.
+ *
+ * Modelled with its origin at the UNDERSIDE, so an instance placed at deck
+ * height rests on the deck. Total height is SECTION.palletH exactly - board,
+ * block, board - because the load sits on top of it by that number.
+ */
 function palletGeometry() {
-  const w = SECTION.palletW * MM;
-  const d = SECTION.palletD * MM;
-  const boardT = 0.018;
-  const stringerH = 0.09;
+  const w = SECTION.palletW * MM; // along the run
+  const d = SECTION.palletD * MM; // across the depth
+  const board = SECTION.palletBoard * MM;
+  const block = SECTION.palletBlock * MM;
   const geos: THREE.BufferGeometry[] = [];
 
+  // three bottom boards, the outer two flush with the ends
+  const bw = w / 8;
+  for (let i = 0; i < 3; i++) {
+    const g = new THREE.BoxGeometry(d, board, bw);
+    g.translate(0, board / 2, (w / 2 - bw / 2) * (i - 1));
+    geos.push(g);
+  }
+
+  // three blocks running the full length
+  for (let i = 0; i < 3; i++) {
+    const g = new THREE.BoxGeometry(d * 0.14, block, w);
+    g.translate((d / 2 - d * 0.07) * (i - 1), board + block / 2, 0);
+    geos.push(g);
+  }
+
+  // six top boards, spread so the outer two finish flush with the ends
+  const tw = w / 9;
+  const step = (w - tw) / 5;
   for (let i = 0; i < 6; i++) {
-    const g = new THREE.BoxGeometry(d, boardT, w / 7.2);
-    g.translate(0, stringerH + boardT / 2, -w / 2 + (w / 5.6) * i + w / 14);
-    geos.push(g);
-  }
-  for (let i = 0; i < 3; i++) {
-    const g = new THREE.BoxGeometry(d * 0.14, stringerH, w);
-    g.translate((d / 2 - d * 0.07) * (i - 1), stringerH / 2, 0);
-    geos.push(g);
-  }
-  for (let i = 0; i < 3; i++) {
-    const g = new THREE.BoxGeometry(d, boardT, w / 8);
-    g.translate(0, boardT / 2, (w / 2 - w / 16) * (i - 1));
+    const g = new THREE.BoxGeometry(d, board, tw);
+    g.translate(0, board + block + board / 2, -w / 2 + tw / 2 + step * i);
     geos.push(g);
   }
   return mergeGeometries(geos, false)!;
 }
 
-/** Stretch-wrapped load block sitting on the pallet. */
+/** Stretch-wrapped load, sitting on the pallet deck rather than inside it. */
 function loadGeometry() {
-  const h = 0.66;
+  const h = SECTION.loadH * MM;
   const g = new THREE.BoxGeometry(
-    SECTION.palletD * MM * 0.9,
+    SECTION.palletD * MM * 0.92,
     h,
-    SECTION.palletW * MM * 0.86,
+    SECTION.palletW * MM * 0.94,
   );
-  g.translate(0, SECTION.palletH * MM * 0.5 + h / 2, 0);
+  g.translate(0, SECTION.palletH * MM + h / 2, 0);
   return g;
 }
 
@@ -221,6 +235,7 @@ export function buildRackObject(model: RackModel): RackParts {
   const add = (kind: PartKind, geoKey: string, matKey: string) => {
     const list = model.parts[kind];
     const mesh = new THREE.InstancedMesh(geo[geoKey], mat[matKey], list.length);
+    mesh.name = geoKey;
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     mesh.frustumCulled = false;
@@ -328,13 +343,16 @@ export function fitDistance(
   object: THREE.Object3D,
   camera: THREE.PerspectiveCamera,
   dir: THREE.Vector3,
-  fill = 1,
+  /** one factor, or one per axis when a run should be cropped along its length */
+  fill: number | THREE.Vector3 = 1,
   margin = 1.04,
 ) {
   const box = new THREE.Box3().setFromObject(object);
   const centre = box.getCenter(new THREE.Vector3());
-  if (fill !== 1) {
-    const half = box.getSize(new THREE.Vector3()).multiplyScalar(fill / 2);
+  const f =
+    typeof fill === "number" ? new THREE.Vector3(fill, fill, fill) : fill;
+  if (f.x !== 1 || f.y !== 1 || f.z !== 1) {
+    const half = box.getSize(new THREE.Vector3()).multiply(f).multiplyScalar(0.5);
     box.set(centre.clone().sub(half), centre.clone().add(half));
   }
   const corners: THREE.Vector3[] = [];

@@ -52,7 +52,12 @@ export const DEFAULT_SPEC: RackSpec = {
   bay: 2700,
   depth: 1100,
   height: 6000,
-  levels: [1400, 2900, 4400],
+  /* Four beam levels at a 1 200 pitch. Three levels left the top 1.6 m of a
+     6 m frame completely bare, which reads as a modelling mistake even though
+     the geometry was right. The top level is set so a loaded pallet finishes
+     just under the frame top: 4 900 + 120 beam + 25 deck + 144 pallet + 760
+     load = 5 949, against a frame top of 6 012. */
+  levels: [1350, 2550, 3750, 4900],
   aisle: 3000,
   load: 0.72,
 };
@@ -74,7 +79,12 @@ export const SECTION = {
   decksPerBay: 3,
   palletW: 1200, // along the run
   palletD: 1000, // across the depth
-  palletH: 140,
+  /* Real height of the built pallet: 22 board + 100 block + 22 board. The
+     geometry has to agree with this or the load floats. */
+  palletBoard: 22,
+  palletBlock: 100,
+  palletH: 144,
+  loadH: 760,
 };
 
 export interface RackModel {
@@ -92,6 +102,15 @@ export interface RackModel {
     tonnes: number;
     runLength: number;
   };
+}
+
+/** Small avalanche hash, so thinned pallet positions scatter rather than
+ *  line up into columns. Deterministic across reloads. */
+function hash(a: number, b: number, c: number, d: number) {
+  let h = (a * 0x27d4eb2d + b * 0x165667b1 + c * 0x9e3779b1 + d * 0x85ebca6b) >>> 0;
+  h = Math.imul(h ^ (h >>> 15), 0x2545f491) >>> 0;
+  h = Math.imul(h ^ (h >>> 13), 0x27d4eb2d) >>> 0;
+  return (h ^ (h >>> 16)) >>> 0;
 }
 
 /**
@@ -200,13 +219,16 @@ export function buildRack(input: Partial<RackSpec> = {}): RackModel {
       for (let b = 0; b < bays; b++) {
         const z0 = frameZ[b] + S.colD / 2;
         for (let p = 0; p < 2; p++) {
-          // deterministic thinning, so the same rack renders identically
-          const seed = (r * 97 + li * 31 + b * 7 + p * 3) % 100;
+          /* Deterministic thinning, so the same rack always renders the same.
+             A plain weighted sum of the indices leaves visible columns and
+             stripes of empty positions; this mixes properly. */
           const keep = spec.load * 100 * (1 - li * 0.13);
-          if (seed >= keep) continue;
+          if (hash(r, li, b, p) % 100 >= keep) continue;
+          /* The pallet geometry is modelled with its origin at the underside,
+             so it is placed AT the deck, not half its height above it. */
           parts.pallet.push({
             x: x0 + depth / 2,
-            y: deckTop + S.palletH / 2,
+            y: deckTop,
             z: z0 + bay * (p === 0 ? 0.25 : 0.75),
           });
         }

@@ -18,7 +18,13 @@ import * as THREE from "three";
 import { buildRack, STAGES } from "@/lib/rack";
 import { buildRackObject, fitDistance, stage } from "@/lib/rack-three";
 
-const DIR = new THREE.Vector3(0.62, 0.28, 0.73).normalize();
+/* Shallow three-quarter, close to an elevation. A steep 3/4 throws the run
+   away into depth, so its 22 m maps to only a third of a panoramic card; from
+   nearly side-on the length maps to the width, which is what fills it. */
+/* Enough elevation that an empty deck reads as a surface. Seen edge-on from a
+   level camera a 25 mm panel is a hairline floating in the bay, which looks
+   exactly like a modelling fault even though the geometry is right. */
+const DIR = new THREE.Vector3(0.93, 0.24, 0.27).normalize();
 
 export default function RackHeroCanvas({
   className = "",
@@ -34,7 +40,12 @@ export default function RackHeroCanvas({
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(32, 1, 0.4, 300);
+        /* A very long lens, standing well back. Any wider and one end of a 22 m
+       run is visibly larger than the other, so the whole thing reads as a
+       trapezoid rather than a straight run of racking. At 12 degrees the
+       projection is close enough to orthographic that the bays stay even, and
+       there is still enough perspective to see it is a solid object. */
+    const camera = new THREE.PerspectiveCamera(12, 1, 0.4, 600);
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
@@ -44,9 +55,10 @@ export default function RackHeroCanvas({
     el.appendChild(renderer.domElement);
     renderer.domElement.style.cssText = "display:block;width:100%;height:100%";
 
-    // two runs with a gangway: the hero card is panoramic, and a single run
-    // leaves most of that width empty
-    const model = buildRack({ rows: 2, bays: 5, aisle: 2600, load: 0.6 });
+    /* One long run rather than two. The card is roughly 4.4:1, so the run has
+       to be long enough to match those proportions; and at this shallow an
+       angle a second row would simply hide behind the first. */
+    const model = buildRack({ rows: 1, bays: 8, load: 0.88 });
     const rack = buildRackObject(model);
     scene.add(rack.group);
     stage(renderer, scene, 9, 1.0, 0xf8f7f5);
@@ -61,9 +73,11 @@ export default function RackHeroCanvas({
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      // 0.6 lets the ends of the run and the near baseplates crop, which is
-      // what makes it fill a panoramic card instead of sitting in the middle
-      const f = fitDistance(rack.group, camera, DIR, 0.72);
+      /* Nearly the whole box. The aggressive fill factor was only needed for a
+         steep three-quarter, where the near bottom corner dominates; from close
+         to level that corner is unremarkable and cropping just loses the top
+         beam level. */
+      const f = fitDistance(rack.group, camera, DIR, 0.97);
       dist = f.distance;
       target.copy(f.centre);
       camera.position.copy(DIR).multiplyScalar(dist).add(target);
@@ -89,8 +103,19 @@ export default function RackHeroCanvas({
       });
     }
 
-    if (reduce) rack.revealAll();
-    else applyBuild(0);
+    /* The erection runs once. Without this, scrolling away and back restarts
+       it and the card sits empty for a moment before anything appears. */
+    let built = false;
+    /* Nothing animates while the document is hidden, because rAF does not
+       fire. Mounting in a background tab, an embedded preview or a throttled
+       pane would otherwise leave the card empty until something happened to
+       wake it, so in that case the rack simply starts finished. */
+    if (reduce || document.hidden) {
+      rack.revealAll();
+      built = true;
+    } else {
+      applyBuild(0);
+    }
 
     /* --- pointer parallax ----------------------------------------------- */
     /* The listener is on the window but the reading is normalised against the
@@ -115,6 +140,9 @@ export default function RackHeroCanvas({
     let visible = true;
     let t0 = 0;
     let last = 0;
+    let lastT = 0;
+    /* per second, not per frame, so the parallax feels the same at any rate */
+    const smooth = (dt: number, rate: number) => 1 - Math.exp(-dt * rate);
     const up = new THREE.Vector3(0, 1, 0);
     const pitchAxis = new THREE.Vector3().crossVectors(DIR, up).normalize();
 
@@ -135,15 +163,21 @@ export default function RackHeroCanvas({
     function tick(now: number) {
       raf = visible ? requestAnimationFrame(tick) : 0;
       if (!t0) t0 = now;
+      const dt = lastT ? Math.min(0.1, (now - lastT) / 1000) : 1 / 60;
+      lastT = now;
       last = now;
       const t = now - t0;
 
       if (!reduce) {
-        const p = Math.min(1, t / BUILD_MS);
-        applyBuild(p * p * (3 - 2 * p));
+        if (!built) {
+          const p = Math.min(1, t / BUILD_MS);
+          applyBuild(p * p * (3 - 2 * p));
+          if (p >= 1) built = true;
+        }
 
-        eased.x += (pointer.x - eased.x) * 0.04;
-        eased.y += (pointer.y - eased.y) * 0.04;
+        const k = smooth(dt, 2.6);
+        eased.x += (pointer.x - eased.x) * k;
+        eased.y += (pointer.y - eased.y) * k;
 
         const swing = Math.sin(t * 0.00013) * 0.16 + eased.x * 0.1;
         // vertical parallax as a small tilt about the view's own horizontal
@@ -161,6 +195,8 @@ export default function RackHeroCanvas({
 
       renderer.render(scene, camera);
     }
+    // paint once up front so the card is never an empty rectangle
+    renderer.render(scene, camera);
     raf = requestAnimationFrame(tick);
 
     return () => {
