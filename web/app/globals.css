@@ -154,10 +154,20 @@ body {
   /* Centre the pinned panel when it fits, and fall back to top-aligned when it
      does not. A plain `center` overflows in BOTH directions, which is how the
      build sequence ended up sliding under the fixed header on a short phone.
-     The first declaration is the fallback for browsers without `safe`. */
+
+     The fallback needs @supports, not a repeated declaration: Lightning CSS
+     deduplicates two `align-items` lines in one rule and ships only the last,
+     so the safety net was silently minified away. Without `safe` support
+     (Safari below 16.4) this now stays top-aligned, which is the behaviour
+     that cannot overlap. */
   .pin-panel {
     align-items: flex-start;
-    align-items: safe center;
+  }
+
+  @supports (align-items: safe center) {
+    .pin-panel {
+      align-items: safe center;
+    }
   }
 
   .btn {
