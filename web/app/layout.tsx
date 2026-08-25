@@ -36,7 +36,9 @@ export const metadata: Metadata = {
     description:
       "Heavy duty pallet racking and retail display fixtures, measured, drawn and installed across Johor since 2014.",
   },
-  icons: { icon: "/brand/favicon.png" },
+  /* Metadata icons are emitted verbatim, so unlike next/image they never pick
+     up the basePath. On a project page a bare "/brand/..." would 404. */
+  icons: { icon: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/brand/favicon.png` },
 };
 
 export const viewport: Viewport = {
