@@ -209,8 +209,13 @@ export default function BuildSequence() {
       className="relative"
       style={{ height: reduced ? "auto" : "600vh" }}
     >
-      <div className="sticky top-0 flex h-[100dvh] items-center overflow-hidden pt-[76px]">
-        <div className="mx-auto grid w-full max-w-[1180px] grid-cols-1 items-center gap-6 px-4 sm:px-6 lg:grid-cols-12 lg:gap-10 lg:px-8">
+      {/* The header is a fixed pill ending at 72px. `pin-panel` centres this
+          column while it fits and switches to top-aligned when it does not —
+          plain centring overflows in both directions, and on a phone with
+          browser chrome this one ran 93px long, half of which went straight up
+          under the nav. See .pin-panel in globals.css. */}
+      <div className="pin-panel sticky top-0 flex h-[100dvh] overflow-hidden pt-[80px] pb-4 lg:pb-0">
+        <div className="mx-auto grid w-full max-w-[1180px] grid-cols-1 items-center gap-3 px-4 sm:px-6 lg:grid-cols-12 lg:gap-10 lg:px-8">
           {/* the rack keeps its own soft stage; the copy sits beside it rather
               than on top, so nothing needs a scrim to stay readable */}
           <div className="surface overflow-hidden lg:col-span-7 lg:col-start-6 lg:row-start-1">
@@ -222,18 +227,18 @@ export default function BuildSequence() {
           </div>
 
           <div className="lg:col-span-5 lg:col-start-1 lg:row-start-1">
-            <h2 className="t-h2 mb-5 max-w-[16ch] text-balance">
+            <h2 className="t-h2 mb-2 max-w-[16ch] text-balance lg:mb-5">
               Six stages, one component count.
             </h2>
 
-            <ol className="mb-6">
+            <ol className="mb-2 lg:mb-6">
               {STAGES.map((s, i) => {
                 const on = i === stageIndex;
                 const done = i < stageIndex;
                 return (
                   <li
                     key={s.key}
-                    className={`flex items-baseline gap-4 rounded-2xl px-4 py-2 transition-colors duration-300 lg:py-2.5 ${
+                    className={`flex items-baseline gap-4 rounded-2xl px-4 py-1 transition-colors duration-300 lg:py-2.5 ${
                       on ? "bg-tint-warm" : ""
                     }`}
                   >
@@ -266,8 +271,8 @@ export default function BuildSequence() {
             </ol>
 
             <div key={current.key} className="rise px-4">
-              <p className="t-body text-[1rem]">{current.note}</p>
-              <div className="mt-5 flex flex-wrap items-center gap-2.5">
+              <p className="t-body text-[0.95rem] lg:text-[1rem]">{current.note}</p>
+              <div className="mt-3 flex flex-wrap items-center gap-2.5 lg:mt-5">
                 <span className="t-num rounded-full bg-surface px-3.5 py-1.5 text-[0.85rem] font-medium text-ink">
                   {current.spec}
                 </span>

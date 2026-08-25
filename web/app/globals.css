@@ -151,6 +151,15 @@ body {
     border-radius: var(--r-surface);
   }
 
+  /* Centre the pinned panel when it fits, and fall back to top-aligned when it
+     does not. A plain `center` overflows in BOTH directions, which is how the
+     build sequence ended up sliding under the fixed header on a short phone.
+     The first declaration is the fallback for browsers without `safe`. */
+  .pin-panel {
+    align-items: flex-start;
+    align-items: safe center;
+  }
+
   .btn {
     display: inline-flex;
     align-items: center;
