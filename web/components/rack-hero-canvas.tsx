@@ -93,12 +93,19 @@ export default function RackHeroCanvas({
     else applyBuild(0);
 
     /* --- pointer parallax ----------------------------------------------- */
+    /* The listener is on the window but the reading is normalised against the
+       CARD, so a cursor sitting well above or below it produces values far
+       outside -1..1 - scroll the card toward the bottom of the viewport with
+       the pointer up by the nav and it reaches -8 or worse. Clamping is what
+       keeps the camera from being flung into a top-down view. */
+    const clamp = (v: number) => Math.max(-1, Math.min(1, v));
     const pointer = { x: 0, y: 0 };
     const eased = { x: 0, y: 0 };
     function onPointer(e: PointerEvent) {
       const r = el!.getBoundingClientRect();
-      pointer.x = ((e.clientX - r.left) / r.width - 0.5) * 2;
-      pointer.y = ((e.clientY - r.top) / r.height - 0.5) * 2;
+      if (!r.height || !r.width) return;
+      pointer.x = clamp(((e.clientX - r.left) / r.width - 0.5) * 2);
+      pointer.y = clamp(((e.clientY - r.top) / r.height - 0.5) * 2);
     }
     if (!reduce)
       window.addEventListener("pointermove", onPointer, { passive: true });
@@ -107,12 +114,19 @@ export default function RackHeroCanvas({
     let raf = 0;
     let visible = true;
     let t0 = 0;
+    let last = 0;
     const up = new THREE.Vector3(0, 1, 0);
+    const pitchAxis = new THREE.Vector3().crossVectors(DIR, up).normalize();
 
     const io = new IntersectionObserver(
       ([entry]) => {
         visible = entry.isIntersecting;
-        if (visible && !raf) raf = requestAnimationFrame(tick);
+        if (visible && !raf) {
+          // the clock is paused while the card is off screen, so carry the
+          // elapsed time across the gap rather than letting the drift jump
+          t0 += performance.now() - last;
+          raf = requestAnimationFrame(tick);
+        }
       },
       { threshold: 0 },
     );
@@ -121,6 +135,7 @@ export default function RackHeroCanvas({
     function tick(now: number) {
       raf = visible ? requestAnimationFrame(tick) : 0;
       if (!t0) t0 = now;
+      last = now;
       const t = now - t0;
 
       if (!reduce) {
@@ -131,12 +146,16 @@ export default function RackHeroCanvas({
         eased.y += (pointer.y - eased.y) * 0.04;
 
         const swing = Math.sin(t * 0.00013) * 0.16 + eased.x * 0.1;
+        // vertical parallax as a small tilt about the view's own horizontal
+        // axis, so the framing distance is preserved. Raising camera.position.y
+        // directly moved the camera further away as well as higher.
+        const pitch = eased.y * -0.05;
         camera.position
           .copy(DIR)
           .applyAxisAngle(up, swing)
+          .applyAxisAngle(pitchAxis, pitch)
           .multiplyScalar(dist)
           .add(target);
-        camera.position.y += eased.y * -0.9;
         camera.lookAt(target);
       }
 
